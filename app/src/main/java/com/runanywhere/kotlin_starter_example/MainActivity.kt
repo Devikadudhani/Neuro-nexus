@@ -10,23 +10,34 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.runanywhere.kotlin_starter_example.services.ModelService
-import com.runanywhere.kotlin_starter_example.ui.screens.ChatScreen
-import com.runanywhere.kotlin_starter_example.ui.screens.HomeScreen
-import com.runanywhere.kotlin_starter_example.ui.screens.SpeechToTextScreen
-import com.runanywhere.kotlin_starter_example.ui.screens.TextToSpeechScreen
-import com.runanywhere.kotlin_starter_example.ui.screens.ToolCallingScreen
-import com.runanywhere.kotlin_starter_example.ui.screens.VisionScreen
-import com.runanywhere.kotlin_starter_example.ui.screens.VoicePipelineScreen
-import com.runanywhere.kotlin_starter_example.ui.theme.KotlinStarterTheme
+import com.runanywhere.kotlin_starter_example.ui.theme.NeuroNexusTheme
 import android.util.Log
+import androidx.activity.viewModels
 import com.runanywhere.sdk.core.onnx.ONNX
 import com.runanywhere.sdk.foundation.bridge.extensions.CppBridgeModelPaths
 import com.runanywhere.sdk.llm.llamacpp.LlamaCPP
 import com.runanywhere.sdk.public.RunAnywhere
 import com.runanywhere.sdk.public.SDKEnvironment
 import com.runanywhere.sdk.storage.AndroidPlatformContext
+import com.runanywhere.kotlin_starter_example.ui.auth.*
+import com.runanywhere.kotlin_starter_example.ui.dashboard.NeuroNexusDashboard
+import com.runanywhere.kotlin_starter_example.ui.tasks.*
+import com.runanywhere.kotlin_starter_example.community.CommunityPage
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.runanywhere.kotlin_starter_example.tasks.MemoryPreviewScreen
+import com.runanywhere.kotlin_starter_example.ui.VoiceTaskScreen
+import com.runanywhere.kotlin_starter_example.ui.VoiceTaskViewModel
+import com.runanywhere.kotlin_starter_example.ui.profile.ProfileScreen
+import com.runanywhere.kotlin_starter_example.ui.tasks.RecallQuestionScreen
+import com.runanywhere.kotlin_starter_example.ui.tasks.RecallResultScreen
 
 class MainActivity : ComponentActivity() {
+
+    private val viewModel: VoiceTaskViewModel by viewModels {
+        VoiceTaskViewModel.Factory(application)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -41,7 +52,7 @@ class MainActivity : ComponentActivity() {
         // Set the base directory for model storage
         val runanywherePath = java.io.File(filesDir, "runanywhere").absolutePath
         CppBridgeModelPaths.setBaseDirectory(runanywherePath)
-        
+
         // Register backends FIRST - these must be registered before loading any models
         // They provide the inference capabilities (TEXT_GENERATION, STT, TTS, VLM)
         try {
@@ -57,7 +68,7 @@ class MainActivity : ComponentActivity() {
         ModelService.registerDefaultModels()
         
         setContent {
-            KotlinStarterTheme {
+            NeuroNexusTheme {
                 RunAnywhereApp()
             }
         }
@@ -67,63 +78,114 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun RunAnywhereApp() {
     val navController = rememberNavController()
-    val modelService: ModelService = viewModel()
+//    val modelService: ModelService = viewModel()
     
     NavHost(
         navController = navController,
-        startDestination = "home"
+        startDestination = "welcome"
     ) {
-        composable("home") {
-            HomeScreen(
-                onNavigateToChat = { navController.navigate("chat") },
-                onNavigateToSTT = { navController.navigate("stt") },
-                onNavigateToTTS = { navController.navigate("tts") },
-                onNavigateToVoicePipeline = { navController.navigate("voice_pipeline") },
-                onNavigateToToolCalling = { navController.navigate("tool_calling") },
-                onNavigateToVision = { navController.navigate("vision") }
+
+        // -------- AUTH --------
+        composable("welcome") { WelcomeScreen(navController) }
+        composable("login") { LoginScreen(navController) }
+        composable("role_select") { RoleSelectionScreen(navController) }
+        composable("signup_personal") { SignupPersonalScreen(navController) }
+        composable("signup_contact") { SignupContactScreen(navController) }
+        composable("signup_health") { SignupHealthScreen(navController) }
+        composable("signup_insurance") { SignupInsuranceScreen(navController) }
+        composable("signup_profile") { SignupProfileScreen(navController) }
+        composable("avatar_select") { AvatarSelectionScreen(navController) }
+        composable("loading") { LoadingScreen(navController) }
+
+// -------- DASHBOARD --------
+        composable("dashboard") {
+            NeuroNexusDashboard(
+                navController = navController,
+                onHomeClick = { navController.navigate("dashboard") },
+                onTasksClick = { navController.navigate("tasks") },
+                onSettingsClick = {},
+                onShareClick = { navController.navigate("community") }
             )
         }
-        
-        composable("chat") {
-            ChatScreen(
-                onNavigateBack = { navController.popBackStack() },
-                modelService = modelService
+
+// -------- TASKS --------
+        composable("tasks") { TasksScreen(navController) }
+        composable("memory_match") { MemoryMatchScreen(navController) }
+        composable("memory_mcq") { MemoryMcqScreen(navController) }
+
+// -------- PROFILE --------
+        composable("profile") { ProfileScreen(navController) }
+
+// -------- COMMUNITY --------
+        composable("community") { CommunityPage(navController) }
+
+        composable("voice_task") {
+            VoiceTaskScreen(
+                navController = navController,
+                viewModel = viewModel()
             )
         }
-        
-        composable("stt") {
-            SpeechToTextScreen(
-                onNavigateBack = { navController.popBackStack() },
-                modelService = modelService
-            )
+
+        composable("narrative_recall") {
+            NarrativeRecallScreen(navController)
         }
-        
-        composable("tts") {
-            TextToSpeechScreen(
-                onNavigateBack = { navController.popBackStack() },
-                modelService = modelService
-            )
+
+        composable("memory_preview") {
+            MemoryPreviewScreen(navController)
         }
-        
-        composable("voice_pipeline") {
-            VoicePipelineScreen(
-                onNavigateBack = { navController.popBackStack() },
-                modelService = modelService
-            )
+
+        composable("memory_recall") {
+            MemoryRecallScreen(navController)
         }
-        
-        composable("tool_calling") {
-            ToolCallingScreen(
-                onNavigateBack = { navController.popBackStack() },
-                modelService = modelService
-            )
+
+        composable("story") {
+            StoryScreen(navController)
         }
-        
-        composable("vision") {
-            VisionScreen(
-                onNavigateBack = { navController.popBackStack() },
-                modelService = modelService
-            )
+
+        composable("recall_phase") {
+            RecallPhaseScreen(navController)
+        }
+
+        composable("recall_question") {
+            RecallQuestionScreen(navController)
+        }
+        composable("recall_result/{score}/{time}") { backStackEntry ->
+
+            val score = backStackEntry.arguments
+                ?.getString("score")
+                ?.toIntOrNull() ?: 0
+
+            val time = backStackEntry.arguments
+                ?.getString("time")
+                ?.toIntOrNull() ?: 0
+
+            RecallResultScreen(navController, score, time)
+        }
+
+        composable("memory_mcq") {
+            MemoryMcqScreen(navController)
+        }
+
+        composable(
+            route = "memory_score/{score}",
+            arguments = listOf(navArgument("score") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val score = backStackEntry.arguments?.getInt("score") ?: 0
+            MemoryScoreScreen(navController, score)
+        }
+
+        composable("stroop_intro") {
+            StroopIntroScreen(navController)
+        }
+
+        composable("stroop_game") {
+            StroopGameScreen(navController)
+        }
+
+        composable("stroop_result/{score}/{time}") { backStackEntry ->
+            val score = backStackEntry.arguments?.getString("score")?.toInt() ?: 0
+            val time = backStackEntry.arguments?.getString("time")?.toInt() ?: 0
+            StroopResultScreen(navController, score, time)
         }
     }
 }
