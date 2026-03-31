@@ -2,7 +2,6 @@ package com.runanywhere.kotlin_starter_example
 
 import android.app.Activity
 import android.content.Context
-import android.content.ContextWrapper
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -29,18 +28,17 @@ import com.runanywhere.kotlin_starter_example.ui.auth.*
 import com.runanywhere.kotlin_starter_example.ui.dashboard.NeuroNexusDashboard
 import com.runanywhere.kotlin_starter_example.ui.tasks.*
 import com.runanywhere.kotlin_starter_example.community.CommunityPage
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.runanywhere.kotlin_starter_example.tasks.MemoryPreviewScreen
 import com.runanywhere.kotlin_starter_example.ui.VoiceTaskScreen
 import com.runanywhere.kotlin_starter_example.ui.VoiceTaskViewModel
 import com.runanywhere.kotlin_starter_example.ui.profile.ProfileScreen
-import com.runanywhere.kotlin_starter_example.ui.tasks.RecallQuestionScreen
-import com.runanywhere.kotlin_starter_example.ui.tasks.RecallResultScreen
 import com.runanywhere.kotlin_starter_example.ui.settings.SettingsScreen
 import com.runanywhere.kotlin_starter_example.ui.settings.SettingsViewModel
 import com.runanywhere.kotlin_starter_example.ui.settings.TextSizeConfig
+import com.runanywhere.kotlin_starter_example.face.FaceAnalysisScreen
+import com.runanywhere.kotlin_starter_example.ui.reports.*
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
@@ -83,7 +81,6 @@ class MainActivity : ComponentActivity() {
             val settingsState by settingsViewModel.state.collectAsState()
             val context = LocalContext.current
             
-            // Re-apply locale if it changed
             LaunchedEffect(settingsState.language) {
                 if (settingsState.shouldRestartActivity) {
                     settingsViewModel.onActivityRestarted()
@@ -144,29 +141,28 @@ fun RunAnywhereApp(settingsViewModel: SettingsViewModel) {
             SettingsScreen(navController, viewModel = settingsViewModel) 
         }
         
-        composable("alerts") { /* Placeholder */ }
-        composable("activity") { /* Placeholder */ }
-        composable("messages_settings") { /* Placeholder */ }
-        composable("help") { /* Placeholder */ }
-        composable("feedback") { /* Placeholder */ }
-        composable("storage_settings") { /* Placeholder */ }
-
         composable("tasks") { TasksScreen(navController) }
-        composable("memory_match") { MemoryMatchScreen(navController) }
-        composable("memory_mcq") { MemoryMcqScreen(navController) }
-        composable("profile") { ProfileScreen(navController) }
         composable("community") { CommunityPage(navController) }
+        composable("profile") { ProfileScreen(navController) }
+
+        // -------- REPORTS --------
+        composable("reports") { ReportsScreen(navController) }
+        composable("report_speech") { SpeechReportScreen(navController) }
+        composable("report_face") { FacialReportScreen(navController) }
+        composable("report_cognitive") { CognitiveReportScreen(navController) }
 
         composable("voice_task") {
-            VoiceTaskScreen(
-                navController = navController,
-                viewModel = viewModel()
-            )
+            VoiceTaskScreen(navController = navController, viewModel = viewModel())
+        }
+
+        composable("face_analysis") {
+            FaceAnalysisScreen(navController = navController)
         }
 
         composable("narrative_recall") { NarrativeRecallScreen(navController) }
-        composable("memory_preview") { MemoryPreviewScreen(navController) }
-        composable("memory_recall") { MemoryRecallScreen(navController) }
+        composable("memory_match") { MemoryMatchScreen(navController) }
+        composable("stroop_intro") { StroopIntroScreen(navController) }
+        composable("memory_mcq") { MemoryMcqScreen(navController) }
         composable("story") { StoryScreen(navController) }
         composable("recall_phase") { RecallPhaseScreen(navController) }
         composable("recall_question") { RecallQuestionScreen(navController) }
@@ -175,7 +171,8 @@ fun RunAnywhereApp(settingsViewModel: SettingsViewModel) {
             val time = backStackEntry.arguments?.getString("time")?.toIntOrNull() ?: 0
             RecallResultScreen(navController, score, time)
         }
-        composable("memory_mcq") { MemoryMcqScreen(navController) }
+        composable("memory_preview") { MemoryPreviewScreen(navController) }
+        composable("memory_recall") { MemoryRecallScreen(navController) }
         composable(
             route = "memory_score/{score}",
             arguments = listOf(navArgument("score") { type = NavType.IntType })
@@ -183,7 +180,6 @@ fun RunAnywhereApp(settingsViewModel: SettingsViewModel) {
             val score = backStackEntry.arguments?.getInt("score") ?: 0
             MemoryScoreScreen(navController, score)
         }
-        composable("stroop_intro") { StroopIntroScreen(navController) }
         composable("stroop_game") { StroopGameScreen(navController) }
         composable("stroop_result/{score}/{time}") { backStackEntry ->
             val score = backStackEntry.arguments?.getString("score")?.toInt() ?: 0

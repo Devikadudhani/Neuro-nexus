@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
@@ -35,10 +36,10 @@ fun CustomBottomBar(
 
     val selectedItem = when {
         currentRoute == "dashboard" -> 0
-        currentRoute == "tasks" -> 1
+        currentRoute == "reports" || currentRoute?.startsWith("report_") == true -> 1
         currentRoute == "settings" -> 2
         currentRoute == "community" -> 3
-        else -> 0 // Default or handle other nested routes
+        else -> 0
     }
 
     Box(
@@ -64,11 +65,12 @@ fun CustomBottomBar(
                 onHomeClick()
             }
 
+            // This icon now navigates to Reports
             BottomBarIcon(
-                icon = Icons.Default.List,
+                icon = Icons.Default.Assignment,
                 isSelected = selectedItem == 1
             ) {
-                onTasksClick()
+                navController.navigate("reports")
             }
 
             BottomBarIcon(

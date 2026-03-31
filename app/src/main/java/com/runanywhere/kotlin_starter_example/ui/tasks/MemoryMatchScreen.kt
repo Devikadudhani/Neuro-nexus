@@ -40,8 +40,8 @@ fun MemoryMatchScreen(navController: NavController) {
             modifier = Modifier.fillMaxSize()
         ) {
 
-            // 🔹 Your existing top bar
-            NeuroTopBar()
+            // 🔹 Passed navController here
+            NeuroTopBar(navController)
 
             Column(
                 modifier = Modifier
@@ -124,7 +124,7 @@ fun MemoryMatchScreen(navController: NavController) {
             CustomBottomBar(
                 navController = navController,
                 onHomeClick = { navController.navigate("dashboard") },
-                onTasksClick = { navController.navigate("tasks") },
+                onTasksClick = { navController.navigate("reports") },
                 onSettingsClick = { navController.navigate("settings")},
                 onShareClick = { navController.navigate("community") }
             )

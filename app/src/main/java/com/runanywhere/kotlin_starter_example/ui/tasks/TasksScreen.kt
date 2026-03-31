@@ -35,7 +35,7 @@ fun TasksScreen(
             CustomBottomBar(
                 navController = navController,
                 onHomeClick = { navController.navigate("dashboard") },
-                onTasksClick = { navController.navigate("tasks") },
+                onTasksClick = { navController.navigate("reports") },
                 onSettingsClick = { navController.navigate("settings") },
                 onShareClick = { navController.navigate("community") }
             )
@@ -106,6 +106,7 @@ fun TasksScreen(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
+                
                 TaskItem(
                     title = stringResource(R.string.memory_match),
                     description = "Learn picture–name pairs, then match them correctly.",
@@ -129,6 +130,60 @@ fun TasksScreen(
                     description = "Read a paragraph on screen at your own pace.",
                     bgColor = Color(0xFFD1FADF),
                     onStartClick = { navController.navigate("voice_task") }
+                )
+                TaskItem(
+                    title = "Word List",
+                    description = "Learn and recall a list of 10–15 words across multiple trials.",
+                    bgColor = Color(0xFFD1FADF),
+                    onStartClick = { /* navController.navigate("word_list") */ }
+                )
+                TaskItem(
+                    title = "Picture Description",
+                    description = "Describe a scene (e.g., the 'Cookie Theft') or personal photo.",
+                    bgColor = Color(0xFFD1E9FF),
+                    onStartClick = { /* navController.navigate("picture_description") */ }
+                )
+                TaskItem(
+                    title = "AR Room Recall",
+                    description = "Explore a simple augmented-reality room, then relocate objects.",
+                    bgColor = Color(0xFFFFF4C2),
+                    onStartClick = { /* navController.navigate("ar_room") */ }
+                )
+                TaskItem(
+                    title = "Dual Test",
+                    description = "Perform two tasks at once (e.g., tapping and counting).",
+                    bgColor = Color(0xFFD1FADF),
+                    onStartClick = { /* navController.navigate("dual_task") */ }
+                )
+                TaskItem(
+                    title = "Trail Making",
+                    description = "Connect numbers or numbers + letters in order.",
+                    bgColor = Color(0xFFFFF4C2),
+                    onStartClick = { /* navController.navigate("trail_making") */ }
+                )
+                TaskItem(
+                    title = "Word Association",
+                    description = "Say the first word that comes to mind.",
+                    bgColor = Color(0xFFD1E9FF),
+                    onStartClick = { /* navController.navigate("word_association") */ }
+                )
+                TaskItem(
+                    title = "N-Back Task",
+                    description = "Watch the sequence and tap when it matches N steps ago.",
+                    bgColor = Color(0xFFE9D5FF),
+                    onStartClick = { /* navController.navigate("n_back") */ }
+                )
+                TaskItem(
+                    title = "Face Capture",
+                    description = "Record facial expressions and subtle reactions.",
+                    bgColor = Color(0xFFFFF4C2),
+                    onStartClick = { navController.navigate("face_analysis") }
+                )
+                TaskItem(
+                    title = "Facial Emotion Recognition",
+                    description = "Watch an image or clip; your reactions will be recorded.",
+                    bgColor = Color(0xFFD1FADF),
+                    onStartClick = { /* navController.navigate("emotion_recognition") */ }
                 )
             }
         }

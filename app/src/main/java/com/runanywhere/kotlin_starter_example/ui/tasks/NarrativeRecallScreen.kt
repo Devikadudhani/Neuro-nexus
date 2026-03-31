@@ -133,7 +133,7 @@ fun NarrativeRecallScreen(navController: NavController) {
             CustomBottomBar(
                 navController = navController,
                 onHomeClick = { navController.navigate("dashboard") },
-                onTasksClick = { navController.navigate("tasks") },
+                onTasksClick = { navController.navigate("reports") },
                 onSettingsClick = {navController.navigate("settings") },
                 onShareClick = { navController.navigate("community") }
             )

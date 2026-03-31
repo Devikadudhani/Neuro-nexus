@@ -78,6 +78,15 @@ dependencies {
     implementation(libs.runanywhere.sdk)
     implementation(libs.runanywhere.llamacpp)
     implementation(libs.runanywhere.onnx)
+
+    // CameraX
+    implementation("androidx.camera:camera-core:1.4.1")
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+
+    // MediaPipe
+    implementation(libs.mediapipe.vision)
     
     // Testing
     testImplementation(libs.junit)

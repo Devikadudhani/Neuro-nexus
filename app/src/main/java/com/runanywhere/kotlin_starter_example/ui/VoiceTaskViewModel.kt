@@ -1,10 +1,13 @@
 package com.runanywhere.kotlin_starter_example.ui
 
+import android.Manifest
 import android.app.Application
+import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -17,6 +20,8 @@ import com.runanywhere.sdk.public.RunAnywhere
 import com.runanywhere.sdk.public.extensions.VoiceAgent.VoiceSessionConfig
 import com.runanywhere.sdk.public.extensions.VoiceAgent.VoiceSessionEvent
 import com.runanywhere.sdk.public.extensions.streamVoiceSession
+import com.runanywhere.kotlin_starter_example.data.AnalysisDataStore
+import com.runanywhere.kotlin_starter_example.data.SpeechAnalysisResult
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
@@ -25,7 +30,7 @@ class VoiceTaskViewModel(app: Application) : AndroidViewModel(app) {
 
     private val store = VoiceTaskLocalStore(app)
     private val tts = TtsController(app)
-    private val _uiState = MutableStateFlow(VoiceTaskUiState(result = store.latest()))
+    private val _uiState = MutableStateFlow(VoiceTaskUiState())
     val uiState = _uiState.asStateFlow()
 
     private var sessionJob: Job? = null
@@ -36,7 +41,11 @@ class VoiceTaskViewModel(app: Application) : AndroidViewModel(app) {
 
     fun startTask() {
         if (_uiState.value.isRecording) return
-
+// Explicit permission check to handle security requirements
+        if (ContextCompat.checkSelfPermission(getApplication(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            _uiState.value = _uiState.value.copy(status = "Error: Permission Denied")
+            return
+        }
         isCapturing = true
         _uiState.value = _uiState.value.copy(
             isRecording = true,
@@ -60,6 +69,10 @@ class VoiceTaskViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         val audioFlow = callbackFlow {
+            if (ContextCompat.checkSelfPermission(getApplication(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                close(SecurityException("Recording permission not granted"))
+                return@callbackFlow
+            }
             val bufferSize = AudioRecord.getMinBufferSize(
                 sampleRate,
                 AudioFormat.CHANNEL_IN_MONO,
@@ -79,7 +92,7 @@ class VoiceTaskViewModel(app: Application) : AndroidViewModel(app) {
             }
 
             audioRecord.startRecording()
-            
+
             val readJob = launch(Dispatchers.IO) {
                 val buffer = ShortArray(bufferSize / 2)
                 val byteBuffer = ByteArray(bufferSize)
@@ -144,7 +157,7 @@ class VoiceTaskViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun stopTaskGracefully() {
         if (!isCapturing) return
-        isCapturing = false 
+        isCapturing = false
         timerJob?.cancel()
         timerJob = null
         _uiState.value = _uiState.value.copy(
@@ -168,7 +181,17 @@ class VoiceTaskViewModel(app: Application) : AndroidViewModel(app) {
 
                 val result = VoiceTaskResult(System.currentTimeMillis(), features, score)
                 store.save(result)
-                
+
+                // Store in Global AnalysisDataStore for Reports
+                AnalysisDataStore.speechData = SpeechAnalysisResult(
+                    pitchScore = 80f, // Simplified for now
+                    toneScore = 85f,
+                    speechRate = features.speechRateWpm.toInt(),
+                    clarityScore = (features.zeroCrossingRate * 500).toFloat().coerceIn(0f, 100f),
+                    pauseDuration = (20 - features.speakingDurationSec).toFloat().coerceIn(0f, 20f),
+                    remarks = "Analysis shows ${if(features.zeroCrossingRate > 0.1) "clear" else "muffled"} articulation with a speed of ${features.speechRateWpm.toInt()} WPM."
+                )
+
                 _uiState.value = _uiState.value.copy(
                     isRecording = false,
                     isCompleted = true,
@@ -189,14 +212,15 @@ class VoiceTaskViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun resetTask() {
-        _uiState.value = _uiState.value.copy(
-            isRecording = false,
-            isCompleted = false,
-            status = "Tap start and speak...",
-            transcript = "",
-            result = null,
-            timerSeconds = 20
-        )
+//        _uiState.value = _uiState.value.copy(
+//            isRecording = false,
+//            isCompleted = false,
+//            status = "Tap start and speak...",
+//            transcript = "",
+//            result = null,
+//            timerSeconds = 20
+//        )
+        _uiState.value = VoiceTaskUiState()
     }
 
     override fun onCleared() {

@@ -1,0 +1,116 @@
+package com.runanywhere.kotlin_starter_example.ui.reports
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.runanywhere.kotlin_starter_example.data.AnalysisDataStore
+import com.runanywhere.kotlin_starter_example.ui.components.CustomBottomBar
+import com.runanywhere.kotlin_starter_example.ui.components.NeuroTopBar
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SpeechReportScreen(navController: NavController) {
+    val data = AnalysisDataStore.speechData ?: return
+
+    Scaffold(
+        topBar = { NeuroTopBar(navController) },
+        bottomBar = {
+            CustomBottomBar(
+                navController = navController,
+                onHomeClick = { navController.navigate("dashboard") },
+                onTasksClick = { navController.navigate("tasks") },
+                onSettingsClick = { navController.navigate("settings") },
+                onShareClick = { navController.navigate("community") }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(Color(0xFFF3E5F5))
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                }
+                Text(
+                    text = "Speech Analysis",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = "Detailed Report:", fontSize = 18.sp, fontWeight = FontWeight.Medium)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ReportProgressItem("Pitch", data.pitchScore)
+            ReportProgressItem("Tone", data.toneScore)
+            
+            Text(text = "Speech rate", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            ReportProgressItem("Speed:  ${data.speechRate} words / min", (data.speechRate / 200f) * 100f)
+
+            ReportProgressItem("Clarity", data.clarityScore)
+            
+            Text(text = "Pause Duration:", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            ReportProgressItem("${data.pauseDuration.toInt()} sec", (data.pauseDuration / 20f) * 100f)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5).copy(alpha = 0.5f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Remarks : ${data.remarks}",
+                        fontSize = 14.sp,
+                        color = Color.DarkGray,
+                        lineHeight = 20.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ReportProgressItem(label: String, score: Float) {
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = label, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = "${score.toInt()}%", fontSize = 16.sp)
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        LinearProgressIndicator(
+            progress = { score / 100f },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(12.dp)
+                .background(Color.LightGray.copy(alpha = 0.3f), RoundedCornerShape(6.dp)),
+            color = Color(0xFFB39DDB),
+            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+        )
+    }
+}

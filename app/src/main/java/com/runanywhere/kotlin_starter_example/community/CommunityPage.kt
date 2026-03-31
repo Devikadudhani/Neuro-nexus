@@ -13,10 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.runanywhere.kotlin_starter_example.R
 import com.runanywhere.kotlin_starter_example.ui.components.CustomBottomBar
 import com.runanywhere.kotlin_starter_example.ui.components.NeuroTopBar
 
@@ -47,14 +49,14 @@ fun CommunityPage(
         ) {
 
             Text(
-                text = "Community",
+                text = stringResource(R.string.community),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            SectionHeader("Featured Articles")
+            SectionHeader(stringResource(R.string.featured_articles))
             ArticleCard(
                 "Dementia Is Not Inevitable. How to Lower Your Risk.",
                 "Early detection of diseases causing dementia using digital technologies."
@@ -66,7 +68,7 @@ fun CommunityPage(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            SectionHeader("FAQs")
+            SectionHeader(stringResource(R.string.faqs))
             FaqItem(
                 "What is dementia?",
                 "Dementia is a loss of thinking, remembering, and reasoning skills severe enough to interfere with daily life."
@@ -86,7 +88,7 @@ fun CommunityPage(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            SectionHeader("Contacts")
+            SectionHeader(stringResource(R.string.contacts))
             ContactItem("Dementia India Alliance Helpline", "8585 990 990")
             ContactItem("ARDSI Delhi Chapter", "+91 93154 18060")
             ContactItem("Tele-MANAS Mental Health Helpline", "14416 / 1-800-91-4416")
@@ -108,7 +110,7 @@ fun SectionHeader(title: String) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        Text("See more >", fontSize = 12.sp, color = Color.Gray)
+        Text(stringResource(R.string.see_more) + " >", fontSize = 12.sp, color = Color.Gray)
     }
 }
 
