@@ -122,9 +122,10 @@ fun MemoryRecallScreen(navController: NavController) {
             }
 
             CustomBottomBar(
+                navController = navController,
                 onHomeClick = { navController.navigate("dashboard") },
                 onTasksClick = { navController.navigate("tasks") },
-                onSettingsClick = { },
+                onSettingsClick = {navController.navigate("settings") },
                 onShareClick = { navController.navigate("community") }
             )
         }

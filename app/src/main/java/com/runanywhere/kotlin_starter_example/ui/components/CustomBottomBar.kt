@@ -18,15 +18,28 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
 fun CustomBottomBar(
+    navController: NavController,
     onHomeClick: () -> Unit,
     onTasksClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onShareClick: () -> Unit
 ) {
-    var selectedItem by remember { mutableStateOf(0) }
+    // Dynamically calculate the selected item based on the current route
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val selectedItem = when {
+        currentRoute == "dashboard" -> 0
+        currentRoute == "tasks" -> 1
+        currentRoute == "settings" -> 2
+        currentRoute == "community" -> 3
+        else -> 0 // Default or handle other nested routes
+    }
 
     Box(
         modifier = Modifier
@@ -48,7 +61,6 @@ fun CustomBottomBar(
                 icon = Icons.Default.Home,
                 isSelected = selectedItem == 0
             ) {
-                selectedItem = 0
                 onHomeClick()
             }
 
@@ -56,7 +68,6 @@ fun CustomBottomBar(
                 icon = Icons.Default.List,
                 isSelected = selectedItem == 1
             ) {
-                selectedItem = 1
                 onTasksClick()
             }
 
@@ -64,7 +75,6 @@ fun CustomBottomBar(
                 icon = Icons.Default.Settings,
                 isSelected = selectedItem == 2
             ) {
-                selectedItem = 2
                 onSettingsClick()
             }
 
@@ -72,7 +82,6 @@ fun CustomBottomBar(
                 icon = Icons.Default.Share,
                 isSelected = selectedItem == 3
             ) {
-                selectedItem = 3
                 onShareClick()
             }
         }

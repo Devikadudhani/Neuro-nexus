@@ -47,9 +47,10 @@ fun VoiceTaskScreen(
         topBar = { NeuroTopBar(navController) },
         bottomBar = {
             CustomBottomBar(
+                navController = navController,
                 onHomeClick = { navController.navigate("dashboard") },
                 onTasksClick = { navController.navigate("tasks") },
-                onSettingsClick = { /* TODO: settings screen */ },
+                onSettingsClick = { navController.navigate("settings") },
                 onShareClick = { navController.navigate("community") }
             )
         },

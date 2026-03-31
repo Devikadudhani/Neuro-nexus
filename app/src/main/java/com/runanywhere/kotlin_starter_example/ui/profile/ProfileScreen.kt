@@ -128,9 +128,10 @@ fun ProfileScreen(navController: NavController) {
         }
 
         CustomBottomBar(
+            navController = navController,
             onHomeClick = { navController.navigate("dashboard") },
             onTasksClick = { navController.navigate("tasks") },
-            onSettingsClick = { navController.navigate("profile") },
+            onSettingsClick = { navController.navigate("settings") },
             onShareClick = { navController.navigate("community") }
         )
     }

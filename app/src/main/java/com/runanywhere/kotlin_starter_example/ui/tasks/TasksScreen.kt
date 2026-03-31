@@ -10,10 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.runanywhere.kotlin_starter_example.R
 import com.runanywhere.kotlin_starter_example.services.ModelService
 import com.runanywhere.kotlin_starter_example.ui.components.CustomBottomBar
 import com.runanywhere.kotlin_starter_example.ui.components.ModelLoaderWidget
@@ -23,18 +25,18 @@ import com.runanywhere.kotlin_starter_example.ui.components.SpeakerFab
 @Composable
 fun TasksScreen(
     navController: NavController,
-    tasksText: String = "This is the tasks screen. You can choose activities like memory match, trail making, reading test and face capture."
+    tasksText: String = stringResource(R.string.tasks)
 ) {
     val modelService: ModelService = viewModel()
 
     Scaffold(
-        topBar = { NeuroTopBar(navController)
-        },
+        topBar = { NeuroTopBar(navController) },
         bottomBar = {
             CustomBottomBar(
+                navController = navController,
                 onHomeClick = { navController.navigate("dashboard") },
                 onTasksClick = { navController.navigate("tasks") },
-                onSettingsClick = { /* TODO: navigate to settings */ },
+                onSettingsClick = { navController.navigate("settings") },
                 onShareClick = { navController.navigate("community") }
             )
         },
@@ -65,13 +67,13 @@ fun TasksScreen(
             ) {
 
                 Text(
-                    text = "Model Management",
+                    text = stringResource(R.string.model_management),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
 
                 ModelLoaderWidget(
-                    modelName = "Language Model (LLM)",
+                    modelName = stringResource(R.string.language_model),
                     isDownloading = modelService.isLLMDownloading,
                     isLoading = modelService.isLLMLoading,
                     isLoaded = modelService.isLLMLoaded,
@@ -80,7 +82,7 @@ fun TasksScreen(
                 )
 
                 ModelLoaderWidget(
-                    modelName = "Speech Recognition (STT)",
+                    modelName = stringResource(R.string.speech_recognition),
                     isDownloading = modelService.isSTTDownloading,
                     isLoading = modelService.isSTTLoading,
                     isLoaded = modelService.isSTTLoaded,
@@ -89,7 +91,7 @@ fun TasksScreen(
                 )
 
                 ModelLoaderWidget(
-                    modelName = "Text-to-Speech (TTS)",
+                    modelName = stringResource(R.string.text_to_speech_model),
                     isDownloading = modelService.isTTSDownloading,
                     isLoading = modelService.isTTSLoading,
                     isLoaded = modelService.isTTSLoaded,
@@ -100,106 +102,34 @@ fun TasksScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Tasks",
+                    text = stringResource(R.string.tasks),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
                 TaskItem(
-                    title = "Memory Match",
+                    title = stringResource(R.string.memory_match),
                     description = "Learn picture–name pairs, then match them correctly.",
                     bgColor = Color(0xFFE9D5FF),
                     onStartClick = { navController.navigate("memory_match") }
                 )
                 TaskItem(
-                    title = "Stroop Test",
+                    title = stringResource(R.string.stroop_test),
                     description = "Name the ink color of words that spell different colors.",
                     bgColor = Color(0xFFE9D5FF),
                     onStartClick = { navController.navigate("stroop_intro") }
                 )
                 TaskItem(
-                    title = "Narrative Recall",
+                    title = stringResource(R.string.narrative_recall),
                     description = "Listen to a short story and later recall its details.",
                     bgColor = Color(0xFFD1E9FF),
                     onStartClick = { navController.navigate("narrative_recall") }
                 )
                 TaskItem(
-                    title = "Reading Test",
+                    title = stringResource(R.string.reading_test),
                     description = "Read a paragraph on screen at your own pace.",
                     bgColor = Color(0xFFD1FADF),
                     onStartClick = { navController.navigate("voice_task") }
                 )
-                TaskItem(
-                    title = "Word List",
-                    description = "Learn and recall a list of 10–15 words across multiple trials.",
-                    bgColor = Color(0xFFD1FADF),
-                    onStartClick = { navController.navigate("word_list") }
-                )
-
-                TaskItem(
-                    title = "Picture Description",
-                    description = "Describe a scene (e.g., the 'Cookie Theft') or personal photo.",
-                    bgColor = Color(0xFFD1E9FF),
-                    onStartClick = { navController.navigate("picture_description") }
-                )
-
-
-
-                TaskItem(
-                    title = "AR Room Recall",
-                    description = "Explore a simple augmented-reality room, then relocate objects.",
-                    bgColor = Color(0xFFFFF4C2),
-                    onStartClick = { navController.navigate("ar_room") }
-                )
-
-                TaskItem(
-                    title = "Dual Test",
-                    description = "Perform two tasks at once (e.g., tapping and counting).",
-                    bgColor = Color(0xFFD1FADF),
-                    onStartClick = { navController.navigate("dual_task") }
-                )
-
-
-
-
-
-                TaskItem(
-                    title = "Trail Making",
-                    description = "Connect numbers or numbers + letters in order.",
-                    bgColor = Color(0xFFFFF4C2),
-                    onStartClick = { navController.navigate("trail_making") }
-                )
-
-
-
-                TaskItem(
-                    title = "Word Association",
-                    description = "Say the first word that comes to mind.",
-                    bgColor = Color(0xFFD1E9FF),
-                    onStartClick = { navController.navigate("word_association") }
-                )
-
-                TaskItem(
-                    title = "N-Back Task",
-                    description = "Watch the sequence and tap when it matches N steps ago.",
-                    bgColor = Color(0xFFE9D5FF),
-                    onStartClick = { navController.navigate("n_back") }
-                )
-
-                TaskItem(
-                    title = "Face Capture",
-                    description = "Record facial expressions and subtle reactions.",
-                    bgColor = Color(0xFFFFF4C2),
-                    onStartClick = { navController.navigate("face_capture") }
-                )
-
-                TaskItem(
-                    title = "Facial Emotion Recognition",
-                    description = "Watch an image or clip; your reactions will be recorded.",
-                    bgColor = Color(0xFFD1FADF),
-                    onStartClick = { navController.navigate("emotion_recognition") }
-                )
-
-
             }
         }
     }

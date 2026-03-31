@@ -12,10 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.runanywhere.kotlin_starter_example.R
 import com.runanywhere.kotlin_starter_example.ui.components.ActivityChart
 import com.runanywhere.kotlin_starter_example.ui.components.CustomBottomBar
 import com.runanywhere.kotlin_starter_example.ui.components.NeuroTopBar
@@ -28,12 +30,13 @@ fun NeuroNexusDashboard(
     onHomeClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onShareClick: () -> Unit = {},
-    dashboardText: String = "Welcome to your NeuroNexus dashboard. Points: 550 coins. Condition: All is well."
+    dashboardText: String = stringResource(R.string.all_is_well)
 ) {
     Scaffold(
         topBar = {NeuroTopBar(navController) },
         bottomBar = {
             CustomBottomBar(
+                navController = navController,
                 onHomeClick = onHomeClick,
                 onTasksClick = onTasksClick,
                 onSettingsClick = onSettingsClick,
@@ -66,7 +69,7 @@ fun NeuroNexusDashboard(
             ) {
 
                 Text(
-                    text = "Dashboard",
+                    text = stringResource(R.string.dashboard),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -78,14 +81,14 @@ fun NeuroNexusDashboard(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     StatusCard(
-                        title = "Points",
+                        title = stringResource(R.string.points),
                         value = "550 coins",
                         modifier = Modifier.weight(1f)
                     )
 
                     StatusCard(
-                        title = "Condition",
-                        value = "All is well",
+                        title = stringResource(R.string.condition),
+                        value = stringResource(R.string.all_is_well),
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -103,13 +106,13 @@ fun NeuroNexusDashboard(
                 ) {
 
                     Text(
-                        text = "Tasks",
+                        text = stringResource(R.string.tasks),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
 
                     Text(
-                        text = "View All",
+                        text = stringResource(R.string.view_all),
                         color = Color(0xFF7E57C2),
                         modifier = Modifier.clickable {
                             onTasksClick()
@@ -119,10 +122,10 @@ fun NeuroNexusDashboard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                DashboardTaskRow("Memory Match", Color(0xFFD1FADF))
-                DashboardTaskRow("Stroop Test", Color(0xFFD1E9FF))
-                DashboardTaskRow("Narrative Recall", Color(0xFFFFE4F2))
-                DashboardTaskRow("Reading Test", Color(0xFFFEF9C3))
+                DashboardTaskRow(stringResource(R.string.memory_match), Color(0xFFD1FADF))
+                DashboardTaskRow(stringResource(R.string.stroop_test), Color(0xFFD1E9FF))
+                DashboardTaskRow(stringResource(R.string.narrative_recall), Color(0xFFFFE4F2))
+                DashboardTaskRow(stringResource(R.string.reading_test), Color(0xFFFEF9C3))
             }
         }
     }
