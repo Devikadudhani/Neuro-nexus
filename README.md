@@ -200,7 +200,7 @@ No network permission is declared or required.
 | Neurology OPD pilot (100 patients) | 🔜 Planned |
 | Android beta (500 users) | 🔜 Planned |
 
-Target benchmark: ADReSS Challenge baseline ~82% accuracy. NeuroNexus targets to match and exceed via multimodal fusion advantage.
+
 ---
 
 
