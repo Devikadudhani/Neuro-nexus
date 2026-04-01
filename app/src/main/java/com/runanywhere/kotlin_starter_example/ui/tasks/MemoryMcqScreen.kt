@@ -90,8 +90,7 @@ fun MemoryMcqScreen(navController: NavController) {
             modifier = Modifier.fillMaxSize()
         ) {
 
-            NeuroTopBar()
-
+            NeuroTopBar(navController)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
