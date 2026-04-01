@@ -1,296 +1,212 @@
-# RunAnywhere Kotlin SDK Starter
+# NeuroNexus
 
-A comprehensive Android starter app demonstrating the **RunAnywhere SDK** capabilities - privacy-first, on-device AI for Android with Kotlin and Jetpack Compose.
+> *Because the brain starts whispering long before it starts screaming.*
 
-## Features
-
-This starter app showcases all major capabilities of the RunAnywhere SDK:
-
-### 🧠 Chat (LLM Text Generation)
-- On-device text generation using **SmolLM2 360M**
-- Real-time chat interface with message history
-- Powered by llama.cpp backend
-
-### 🎤 Speech to Text (STT)
-- Real-time speech recognition using **Whisper Tiny**
-- Microphone permission handling
-- Voice activity detection
-- Powered by Sherpa-ONNX backend
-
-### 🔊 Text to Speech (TTS)
-- Natural voice synthesis using **Piper TTS**
-- Sample texts and custom input
-- High-quality US English voice (Lessac)
-- Powered by Sherpa-ONNX backend
-
-### 🎯 Voice Pipeline (Voice Agent)
-- Complete voice conversation pipeline
-- Combines STT → LLM → TTS
-- Real-time conversation flow
-- Status indicators for each stage
-
-## Getting Started
-
-### Prerequisites
-
-- **Android Studio**: Hedgehog (2023.1.1) or later
-- **Minimum SDK**: API 26 (Android 8.0)
-- **Target SDK**: API 35 (Android 15)
-- **Kotlin**: 2.0.21 or later
-- **Java**: 17
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd starter_apps/kotlinstarterexample
-   ```
-
-2. **Open in Android Studio**
-   - Open Android Studio
-   - Select "Open an Existing Project"
-   - Navigate to the `kotlinstarterexample` folder
-   - Click "OK"
-
-3. **Sync Gradle**
-   - Android Studio will automatically sync Gradle
-   - If not, click "Sync Now" in the notification bar
-
-4. **Run the app**
-   - Connect an Android device or start an emulator
-   - Click the "Run" button (▶️) in Android Studio
-   - Select your device/emulator
-   - The app will build and install
-
-### First Launch
-
-On the first launch:
-
-1. **Home Screen**: You'll see 4 feature cards
-2. **Load Models**: Each feature requires downloading AI models:
-   - **LLM**: ~400 MB (SmolLM2 360M)
-   - **STT**: ~75 MB (Whisper Tiny)
-   - **TTS**: ~20 MB (Piper TTS)
-3. **Grant Permissions**: STT and Voice Pipeline require microphone permission
-4. **Start Using**: Once models are loaded, all features are ready!
-
-## Architecture
-
-### Project Structure
-
-```
-app/src/main/java/com/runanywhere/kotlin_starter_example/
-├── MainActivity.kt                    # App entry point
-├── services/
-│   └── ModelService.kt               # Model management (download, load, unload)
-└── ui/
-    ├── theme/                        # App theme and colors
-    │   ├── Theme.kt
-    │   └── Type.kt
-    ├── components/                   # Reusable UI components
-    │   ├── FeatureCard.kt
-    │   └── ModelLoaderWidget.kt
-    └── screens/                      # Feature screens
-        ├── HomeScreen.kt
-        ├── ChatScreen.kt
-        ├── SpeechToTextScreen.kt
-        ├── TextToSpeechScreen.kt
-        └── VoicePipelineScreen.kt
-```
-
-### Key Technologies
-
-- **Jetpack Compose**: Modern declarative UI
-- **Material 3**: Latest Material Design
-- **Navigation Compose**: Screen navigation
-- **Coroutines & Flow**: Asynchronous operations
-- **ViewModel**: State management
-- **RunAnywhere SDK v0.16.0-test.39**: On-device AI
-
-## RunAnywhere SDK Integration
-
-### Dependencies
-
-The app uses three RunAnywhere packages:
-
-```kotlin
-// build.gradle.kts (app module)
-dependencies {
-    // Core SDK
-    implementation("ai.runanywhere:runanywhere-kotlin:0.16.0-test.39")
-    
-    // Backends
-    implementation("ai.runanywhere:runanywhere-llamacpp:0.16.0-test.39")  // LLM
-    implementation("ai.runanywhere:runanywhere-onnx:0.16.0-test.39")      // STT/TTS
-}
-```
-
-### Initialization
-
-```kotlin
-// MainActivity.kt
-RunAnywhere.initialize(environment = SDKEnvironment.DEVELOPMENT)
-ModelService.registerDefaultModels()
-```
-
-### Model Registration
-
-Models are registered in `ModelService.kt`:
-
-```kotlin
-// LLM Model
-RunAnywhere.registerModel(
-    id = "smollm2-360m-instruct-q8_0",
-    name = "SmolLM2 360M Instruct Q8_0",
-    url = "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF/resolve/main/smollm2-360m-instruct-q8_0.gguf",
-    framework = InferenceFramework.LLAMA_CPP,
-    memoryRequirement = 400_000_000
-)
-
-// STT Model
-RunAnywhere.registerModel(
-    id = "sherpa-onnx-whisper-tiny.en",
-    name = "Sherpa Whisper Tiny (ONNX)",
-    url = "https://github.com/RunanywhereAI/sherpa-onnx/releases/download/runanywhere-models-v1/sherpa-onnx-whisper-tiny.en.tar.gz",
-    framework = InferenceFramework.ONNX,
-    category = ModelCategory.SPEECH_RECOGNITION
-)
-
-// TTS Model
-RunAnywhere.registerModel(
-    id = "vits-piper-en_US-lessac-medium",
-    name = "Piper TTS (US English - Medium)",
-    url = "https://github.com/RunanywhereAI/sherpa-onnx/releases/download/runanywhere-models-v1/vits-piper-en_US-lessac-medium.tar.gz",
-    framework = InferenceFramework.ONNX,
-    category = ModelCategory.SPEECH_SYNTHESIS
-)
-```
-
-### Usage Examples
-
-#### Chat (LLM)
-```kotlin
-val response = RunAnywhere.chat("Explain AI in simple terms")
-```
-
-#### Speech to Text (STT)
-```kotlin
-val audioData: ByteArray = recordAudio()
-val transcription = RunAnywhere.transcribe(audioData)
-```
-
-#### Text to Speech (TTS)
-```kotlin
-RunAnywhere.speak("Hello, world!")
-```
-
-#### Voice Pipeline
-```kotlin
-RunAnywhere.startVoiceSession().collect { event ->
-    when (event) {
-        is VoiceSessionEvent.Listening -> updateUI("Listening...")
-        is VoiceSessionEvent.Transcribed -> updateUI("You: ${event.text}")
-        is VoiceSessionEvent.Thinking -> updateUI("Thinking...")
-        is VoiceSessionEvent.Responded -> updateUI("AI: ${event.text}")
-        is VoiceSessionEvent.Speaking -> updateUI("Speaking...")
-    }
-}
-```
-
-## Performance
-
-### Model Sizes
-- **LLM (SmolLM2 360M)**: ~400 MB
-- **STT (Whisper Tiny)**: ~75 MB
-- **TTS (Piper)**: ~20 MB
-- **Total**: ~495 MB
-
-### Inference Speed
-- **LLM**: 5-15 tokens/sec (device dependent)
-- **STT**: Real-time transcription
-- **TTS**: Real-time synthesis
-
-### Device Requirements
-- **RAM**: Minimum 2GB recommended
-- **Storage**: 1GB free space for models
-- **CPU**: ARMv8 64-bit recommended (supports ARMv7)
-
-## Customization
-
-### Changing Models
-
-To use different models, update `ModelService.kt`:
-
-```kotlin
-companion object {
-    const val LLM_MODEL_ID = "your-model-id"
-    const val STT_MODEL_ID = "your-stt-model-id"
-    const val TTS_MODEL_ID = "your-tts-model-id"
-    
-    fun registerDefaultModels() {
-        RunAnywhere.registerModel(
-            id = LLM_MODEL_ID,
-            name = "Your Model Name",
-            url = "your-model-url",
-            framework = InferenceFramework.LLAMA_CPP
-        )
-        // ... register other models
-    }
-}
-```
-
-### Customizing UI
-
-All UI colors and themes are defined in:
-- `ui/theme/Theme.kt` - Color palette
-- `ui/theme/Type.kt` - Typography
-
-## Troubleshooting
-
-### Models Not Downloading
-- Check internet connection
-- Verify URLs in `ModelService.kt`
-- Check device storage space
-
-### App Crashes on Launch
-- Ensure minimum SDK 26
-- Check Gradle sync completed successfully
-- Verify all dependencies are downloaded
-
-### Microphone Permission Denied
-- Go to Settings → Apps → RunAnywhere Kotlin → Permissions
-- Enable "Microphone" permission
-
-### Poor Performance
-- Use a device with at least 2GB RAM
-- Close other apps to free memory
-- Consider using smaller models
-
-## Privacy & Security
-
-All AI processing happens **100% on-device**:
-- ✅ No data sent to servers
-- ✅ No internet required (after model download)
-- ✅ Complete privacy
-- ✅ Works offline
-
-## Resources
-
-- [RunAnywhere SDK Documentation](https://github.com/RunanywhereAI/runanywhere-sdks)
-- [Kotlin SDK API Reference](../../sdks/sdk/runanywhere-kotlin/Documentation.md)
-- [Release Notes](https://github.com/RunanywhereAI/runanywhere-sdks/releases/tag/v0.16.0-test.39)
-
-## License
-
-See the [LICENSE](../../LICENSE) file for details.
-
-## Support
-
-For issues and questions:
-- GitHub Issues: [runanywhere-sdks/issues](https://github.com/RunanywhereAI/runanywhere-sdks/issues)
-- Documentation: [RunAnywhere Docs](https://github.com/RunanywhereAI/runanywhere-sdks)
+Early dementia detection through facial biometrics, voice analysis, and cognitive tasks — fully offline, entirely on-device, built for the people who need it most.
 
 ---
 
-**Built with ❤️ using RunAnywhere SDK v0.16.0-test.39**
+## Overview
+
+**NeuroNexus** is a fully offline Android application for early dementia and cognitive decline detection. It uses multimodal AI across three pillars — facial biometrics, voice analysis, and cognitive task performance — to generate a longitudinal cognitive risk score, entirely on the user's device with no data ever leaving it.
+
+Dementia affects 55 million people globally. Clinical diagnosis typically arrives 3–7 years after the first measurable signals appear. By then, the window for meaningful intervention is nearly closed. NeuroNexus closes that gap.
+
+---
+
+## Core Features
+
+### Three Pillars of Assessment
+
+**1. Facial Analysis**
+Real-time biometric analysis using MediaPipe's 478-point 3D Face Mesh via CameraX:
+- **EAR (Eye Aspect Ratio)** — blink rate, blink irregularity, fatigue signatures
+- **MAR (Mouth Aspect Ratio)** — speech movement detection, facial masking
+- **Brow reactivity** — emotional expressiveness tracked across a session
+- **Head stability** — micro-tremor detection via nose-tip displacement (pitch + yaw range)
+- **Reaction time** — latency between visual prompt and biometric response
+- **Composite blunted affect scoring** via `FaceDementiaAnalyzer`
+
+**2. Voice Analysis**
+On-device speech processing during guided tasks (picture description, story recall):
+- 30+ linguistic markers — lexical richness, information density, filler frequency, syntactic complexity, semantic drift
+- Acoustic markers — pause duration, speech rate, pitch variation
+- Processed via wav2vec 2.0 and BERT embeddings running through ONNX Runtime
+
+**3. Cognitive Task Analysis**
+Short, gamified neuropsychological tasks assessing:
+- Immediate and delayed memory recall
+- Attention and concentration
+- Visuospatial reasoning
+- Pattern recognition and processing speed
+- Executive function — planning, sequencing, flexibility
+
+All three pillars fuse into a single **Unified Cognitive Risk Score** tracked longitudinally over weeks and months.
+
+---
+
+## Accessibility
+
+NeuroNexus is built for the people who need it most, not just those comfortable with technology:
+
+- **Fully offline** — zero internet required, zero data transmitted, works anywhere
+- **Read-aloud assistant** — every screen, instruction, and result is narrated aloud
+- **Multilingual support** — Hindi, Tamil, Telugu, Bengali + more
+- **Elder-friendly UI** — large text, high contrast, minimal navigation steps
+- **On-device LLM** — plain-language insight summaries generated locally via Llama.cpp, narrated aloud
+
+---
+
+## Tech Stack
+
+| Category | Technology |
+|---|---|
+| Language | Kotlin 1.9+ |
+| UI | Jetpack Compose + Material Design 3 |
+| Architecture | MVVM + Clean Architecture |
+| Async | Kotlin Coroutines + StateFlow |
+| Camera | CameraX |
+| Face Mesh | MediaPipe Face Landmarker (478-point 3D) |
+| Vision Processing | OpenCV |
+| On-device ML | ONNX Runtime (wav2vec 2.0, BERT, risk classifier) |
+| On-device LLM | Llama.cpp via RunAnywhere SDK (quantized GGUF) |
+| Navigation | Jetpack Navigation Compose |
+| Storage | Room + DataStore |
+| Min SDK | 24 |
+| Target SDK | 34/35 |
+
+---
+
+## Architecture
+```
+User Input (Camera + Microphone + Touch)
+                    ↓
+        Three Parallel Analysis Streams
+         ↙              ↓             ↘
+   FACIAL            VOICE          COGNITIVE
+   CameraX           Mic Input      Task Engine
+   MediaPipe         ONNX Runtime   Custom Logic
+   FaceMesh          wav2vec 2.0
+   EAR/MAR/Tremor    BERT Embeddings
+   FaceDementiaAnalyzer   ↓              ↓
+         ↓            Linguistic +   Task Score
+   Biometric          Acoustic        Vector
+   Feature Vector     Feature Vector
+         ↓               ↓              ↓
+              Multimodal Fusion Layer
+                    (ONNX Runtime)
+                         ↓
+              On-device LLM (Llama.cpp)
+              Plain-language Insight Generation
+                         ↓
+              Unified Cognitive Risk Score
+              Severity Index + Longitudinal Graph
+                         ↓
+              Local Storage (Room / DataStore)
+         ↙              ↓              ↘
+    User View     Caregiver View   Clinician View
+```
+
+---
+
+## Facial Analysis — Landmark Index Reference
+
+| Feature | Landmarks Used |
+|---|---|
+| Left eye (EAR) | 362 (inner), 263 (outer), 387, 386 (top), 373, 374 (bottom) |
+| Right eye (EAR) | 133 (inner), 33 (outer), 160, 158 (top), 144, 153 (bottom) |
+| Left brow height | 295 (brow center) vs 386 (upper lid) |
+| Right brow height | 65 (brow center) vs 158 (upper lid) |
+| Lip corners (smile) | 61 (left), 291 (right) |
+| Mouth openness | 13 (top), 14 (bottom) |
+| Head pose | 1 (nose tip), 152 (chin), 362/133 (eye inner corners) |
+| Left iris | 468–472 |
+| Right iris | 473–477 |
+
+---
+
+## Risk Scoring
+
+`FaceDementiaAnalyzer` produces a `compositeRiskScore` (0.0–1.0) from seven weighted signals:
+
+| Signal | Weight | Clinical Basis |
+|---|---|---|
+| Blink Rate | 20% | Hypomimia marker — <8 BPM is Parkinson's/dementia pattern |
+| Expressiveness | 20% | Masked affect — reduced spontaneous smiling |
+| Mouth Mobility | 10% | Speech-related movement reduction |
+| Brow Reactivity | 15% | Flat affect indicator |
+| Gaze Engagement | 15% | Sustained gaze avoidance correlates with cognitive load |
+| Head Engagement | 5% | Rigid presentation when both pitch + yaw are static |
+| Overall Affect | 15% | Composite variability across all biometric channels |
+
+**Risk bands:** `0.0–0.3` = Low &nbsp;|&nbsp; `0.3–0.6` = Moderate &nbsp;|&nbsp; `0.6–1.0` = High
+
+---
+
+## Setup & Installation
+
+### Prerequisites
+- Android Studio Hedgehog or later
+- Android device or emulator with API 24+
+- Camera permission
+- Microphone permission
+
+### Steps
+```bash
+git clone https://github.com/your-org/neuronexus.git
+cd neuronexus
+```
+
+1. Open in Android Studio
+2. Place the following model files in `app/src/main/assets/`:
+   - `face_landmarker.task` — MediaPipe Face Landmarker model
+   - `wav2vec_speech.onnx` — Acoustic feature model
+   - `bert_linguistic.onnx` — Linguistic feature model
+   - `fusion_classifier.onnx` — Multimodal fusion model
+   - `neuronexus_llm.gguf` — Quantized LLM for insight generation
+3. Sync Gradle and build
+
+### Permissions
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+```
+
+No network permission is declared or required.
+
+---
+
+## Privacy
+
+- **No data ever leaves the device.** There are no network calls in the production app.
+- No cloud storage, no telemetry, no analytics SDKs.
+- All model inference runs locally via ONNX Runtime and Llama.cpp.
+- Session data is stored encrypted in a local Room database.
+- Users can delete all their data from Settings at any time.
+
+---
+
+## Clinical Validation Status
+
+| Milestone | Status |
+|---|---|
+| Facial biometric pipeline | ✅ Built |
+| Voice feature extraction | ✅ Built |
+| Cognitive task engine | ✅ Built |
+| Multimodal fusion model | ✅ Built |
+| Read-aloud assistant | ✅ Built |
+| ADReSS benchmark evaluation | 🔄 In progress |
+| IRB approval for clinical data | 🔜 Planned |
+| Neurology OPD pilot (100 patients) | 🔜 Planned |
+| Android beta (500 users) | 🔜 Planned |
+
+Target benchmark: ADReSS Challenge baseline ~82% accuracy. NeuroNexus targets to match and exceed via multimodal fusion advantage.
+---
+
+
+## Contact
+
+**NeuroNexus Team**
+Built for early dementia detection at scale.
+
+*Detect early. Intervene early. Give people their time back.*
