@@ -1,19 +1,24 @@
 package com.runanywhere.kotlin_starter_example.ui
 
 import android.Manifest
-import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.runanywhere.kotlin_starter_example.ui.components.CustomBottomBar
@@ -21,12 +26,6 @@ import com.runanywhere.kotlin_starter_example.ui.components.NeuroTopBar
 import com.runanywhere.kotlin_starter_example.ui.components.SpeakerFab
 import com.runanywhere.kotlin_starter_example.ui.theme.Ink
 import com.runanywhere.kotlin_starter_example.ui.theme.LavenderShell
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.graphics.Color
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.filled.Info
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,13 +55,10 @@ fun VoiceTaskScreen(
         },
         floatingActionButton = {
             SpeakerFab(
-                textToRead = if (state.isCompleted && state.result != null) "Your task is completed. Your score is ${state.result?.score}" else state.status,
-                modifier = Modifier.padding(bottom = 0.dp)
+                textToRead = if (state.isCompleted && state.result != null) "Task completed. Viewing speech analysis markers." else state.status
             )
-        },
-        floatingActionButtonPosition = FabPosition.End
+        }
     ) { padding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -73,19 +69,17 @@ fun VoiceTaskScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Text(
-                text = "Reading Test",
+                text = "Speech Analysis Task",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Start)
+                modifier = Modifier.align(Alignment.Start),
+                color = Color(0xFF4A148C)
             )
 
-            // Timer Countdown (Only during recording)
             if (state.isRecording) {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.Red.copy(alpha = 0.1f)),
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    colors = CardDefaults.cardColors(containerColor = Color.Red.copy(alpha = 0.1f))
                 ) {
                     Text(
                         text = "00:${state.timerSeconds.toString().padStart(2, '0')}",
@@ -97,26 +91,24 @@ fun VoiceTaskScreen(
                 }
             }
 
-            // Status message (Shows "Task Completed" when done)
             Text(
                 text = state.status,
                 color = if (state.isCompleted) Color(0xFF2E7D32) else Ink,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = if (state.isCompleted) FontWeight.Bold else FontWeight.Normal,
                 modifier = Modifier.align(Alignment.Start)
             )
 
-            // Live Transcript Box (Always visible if data exists)
             if (state.isRecording || state.transcript.isNotEmpty()) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.5f))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Transcript:", style = MaterialTheme.typography.labelLarge, color = Color.Gray)
+                        Text("Transcription:", style = MaterialTheme.typography.labelLarge, color = Color.Gray)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = if (state.transcript.isEmpty()) "Start speaking..." else state.transcript,
+                            text = if (state.transcript.isEmpty()) "Monitoring audio..." else state.transcript,
                             style = MaterialTheme.typography.bodyLarge,
                             color = Ink
                         )
@@ -124,140 +116,88 @@ fun VoiceTaskScreen(
                 }
             }
 
-            // Results Section with Calculated Parameters
-            state.result?.let {
-                // 1. ORIGINAL Analysis Results Card
+            // Results Section (Dynamic Markers)
+            state.result?.let { res ->
+                Text(
+                    text = "Acoustic & Linguistic Profile",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Start),
+                    color = Color(0xFF4A148C)
+                )
+
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Analysis Results",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        VoiceParameterRow("Speech Rate", "${res.features.speechRateWpm.toInt()} WPM")
+                        VoiceParameterRow("Pause Rate", "%.1f / min".format(res.features.pauseRate))
+                        VoiceParameterRow("Lexical Diversity", "%.2f".format(res.features.lexicalDiversity))
+                        VoiceParameterRow("Semantic Coherence", "%.2f".format(res.features.coherenceScore))
+                        VoiceParameterRow("Vocal Energy (RMS)", "%.3f".format(res.features.rmsEnergy))
                         
-                        Text("Acoustic Metrics", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
-                        ParameterRow("Avg Amplitude (Volume)", "%.4f".format(it.features.averageAmplitude))
-                        ParameterRow("Zero Crossing (Clarity)", "%.4f".format(it.features.zeroCrossingRate))
-                        ParameterRow("Speaking Duration", "%.2f sec".format(it.features.speakingDurationSec))
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        Text("Linguistic Metrics", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
-                        ParameterRow("Speech Rate", "%.1f WPM".format(it.features.speechRateWpm))
-                        ParameterRow("Lexical Diversity", "%.2f".format(it.features.lexicalDiversity))
-                        ParameterRow("Filler Word Count", "${it.features.fillerCount}")
-                        ParameterRow("Repetition Ratio", "%.2f".format(it.features.repetitionRatio))
-                        
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                         
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Overall Score", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Text("${it.score}/100", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            Text("Overall Fluency Score", fontWeight = FontWeight.Bold)
+                            Text("${res.score}/100", fontWeight = FontWeight.ExtraBold, color = Color(0xFF7E57C2))
                         }
                     }
                 }
 
-                // 2. NEW Cognitive Analysis Card (Dementia Detection Layer)
+                // LLM Observation Remark
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = when (it.features.riskLevel) {
-                            "High Risk Pattern" -> Color(0xFFFFEBEE)
-                            "Mild Cognitive Concern" -> Color(0xFFFFF3E0)
-                            else -> Color(0xFFE8F5E9)
-                        }
-                    )
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5))
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = if (it.features.riskScore > 0) Icons.Default.Warning else Icons.Default.Info,
-                                contentDescription = null,
-                                tint = when (it.features.riskLevel) {
-                                    "High Risk Pattern" -> Color.Red
-                                    "Mild Cognitive Concern" -> Color(0xFFEF6C00)
-                                    else -> Color(0xFF2E7D32)
-                                }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Cognitive Analysis",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        
-                        Spacer(modifier = Modifier.height(12.dp))
-                        
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Risk Level:", style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                text = it.features.riskLevel,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = when (it.features.riskLevel) {
-                                    "High Risk Pattern" -> Color.Red
-                                    "Mild Cognitive Concern" -> Color(0xFFEF6C00)
-                                    else -> Color(0xFF2E7D32)
-                                }
-                            )
-                        }
-                        
-                        ParameterRow("Risk Pattern Score", "${it.features.riskScore}")
-                        
-                        if (it.features.detectedIssues.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Detected Observations:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                            it.features.detectedIssues.forEach { issue ->
-                                Text(
-                                    text = "• $issue",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    modifier = Modifier.padding(start = 8.dp, top = 2.dp)
-                                )
-                            }
-                        }
+                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
+                        Icon(Icons.Default.Info, contentDescription = null, tint = Color(0xFF7E57C2))
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text = if (res.features.riskLevel != "Normal" && res.features.riskLevel.isNotBlank()) res.features.riskLevel else "Speech patterns are within normal variance for this task.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.DarkGray
+                        )
                     }
                 }
             }
 
-            // Action Buttons
             if (!state.isCompleted) {
                 Button(
                     onClick = {
-                        if (ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.RECORD_AUDIO
-                            ) != PackageManager.PERMISSION_GRANTED
-                        ) {
-                            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                        } else {
+                        val permission = Manifest.permission.RECORD_AUDIO
+                        if (ContextCompat.checkSelfPermission(context, permission) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
                             if (state.isRecording) viewModel.stopTask() else viewModel.startTask()
+                        } else {
+                            permissionLauncher.launch(permission)
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (state.isRecording) Color.Red else MaterialTheme.colorScheme.primary
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = if (state.isRecording) Color.Red else MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(
-                        text = if (state.isRecording) "Stop Recording" else "Start Reading Test",
-                        color = Color.White
-                    )
+                    Text(if (state.isRecording) "Finish Task" else "Begin Reading Test")
                 }
             } else {
                 Button(
                     onClick = { viewModel.resetTask() },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Try Again", color = Color.White)
+                    Text("Restart Task")
+                }
+                
+                OutlinedButton(
+                    onClick = { navController.navigate("speech_report") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("View Detailed Report")
                 }
             }
         }
@@ -265,12 +205,12 @@ fun VoiceTaskScreen(
 }
 
 @Composable
-fun ParameterRow(label: String, value: String) {
+fun VoiceParameterRow(label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = Ink.copy(alpha = 0.7f))
-        Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = Ink)
+        Text(text = label, color = Color.Gray, fontSize = 14.sp)
+        Text(text = value, fontWeight = FontWeight.Bold, color = Ink, fontSize = 14.sp)
     }
 }

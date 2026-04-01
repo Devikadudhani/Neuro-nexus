@@ -1,22 +1,23 @@
 package com.runanywhere.kotlin_starter_example.face
 
 import android.Manifest
-import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
-import android.util.Size
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,20 +25,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.runanywhere.kotlin_starter_example.ui.components.CustomBottomBar
 import com.runanywhere.kotlin_starter_example.ui.components.NeuroTopBar
 import com.runanywhere.kotlin_starter_example.ui.theme.LavenderShell
 import com.runanywhere.kotlin_starter_example.ui.theme.Ink
-import com.runanywhere.kotlin_starter_example.ui.ParameterRow
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import com.runanywhere.kotlin_starter_example.model.FeatureResult
 import java.util.concurrent.Executors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,7 +47,6 @@ fun FaceAnalysisScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
 
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -89,6 +87,8 @@ fun FaceAnalysisScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            val localColumnScope = this
+            
             Text(
                 text = "Face Analysis",
                 style = MaterialTheme.typography.headlineSmall,
@@ -114,7 +114,32 @@ fun FaceAnalysisScreen(
                     Text("Camera permission required", color = Color.White)
                 }
 
-                // Prompt Overlay
+                // --- ENGAGING OVERLAYS ---
+                
+                // 1. Smile Detection Indicator
+                localColumnScope.AnimatedVisibility(
+                    visible = state.isSmiling,
+                    enter = fadeIn() + scaleIn(),
+                    exit = fadeOut() + scaleOut(),
+                    modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
+                ) {
+                    Surface(
+                        color = Color(0xFF669900),
+                        shape = RoundedCornerShape(12.dp),
+                        tonalElevation = 4.dp
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.SentimentSatisfiedAlt, contentDescription = null, tint = Color.White)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Smile Detected!", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // 2. Prompt Overlay
                 state.currentPrompt?.let { prompt ->
                     Box(
                         modifier = Modifier
@@ -132,7 +157,6 @@ fun FaceAnalysisScreen(
                 }
             }
 
-            // Status message
             Text(
                 text = state.status,
                 color = Ink,
@@ -143,45 +167,27 @@ fun FaceAnalysisScreen(
             state.result?.let { res ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(
-                            text = "Analysis Results",
+                            text = "Detected Facial Cues",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
                         
-                        // Updated to use the new category fields from FaceFeatures
-                        ParameterRow("Blink Rate", res.blinkCategory)
-                        ParameterRow("Head Stability", res.headCategory)
-                        ParameterRow("Reaction Speed", res.reactionCategory)
-                        ParameterRow("Facial Activity", res.facialActivity)
-                        
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Risk Level", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                            Text(
-                                text = res.riskLevel,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = when (res.riskLevel) {
-                                    "High Cognitive Risk" -> Color.Red
-                                    "Mild Cognitive Risk" -> Color(0xFFEF6C00)
-                                    else -> Color(0xFF2E7D32)
-                                }
-                            )
-                        }
+                        ResultRow(res.blinkRate)
+                        ResultRow(res.expressiveness)
+                        ResultRow(res.mouthMovement)
+                        ResultRow(res.reactivity)
+                        ResultRow(res.engagement)
+                        ResultRow(res.headStability)
+                        ResultRow(res.overallVariability)
 
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "This is a behavioral screening result, not a medical diagnosis.",
+                            text = "These results represent behavioral patterns observed during this session and are for screening purposes only.",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.Gray
                         )
@@ -189,7 +195,6 @@ fun FaceAnalysisScreen(
                 }
             }
 
-            // Start Button
             if (!state.isTestRunning) {
                 Button(
                     onClick = { viewModel.startTest() },
@@ -207,6 +212,29 @@ fun FaceAnalysisScreen(
 }
 
 @Composable
+fun ResultRow(result: FeatureResult) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = result.label, style = MaterialTheme.typography.bodyMedium, color = Ink)
+        Surface(
+            color = Color(result.color).copy(alpha = 0.15f),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text(
+                text = result.value,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                color = Color(result.color)
+            )
+        }
+    }
+}
+
+@Composable
 fun CameraXPreview(
     modifier: Modifier,
     onFrame: (Bitmap) -> Unit
@@ -218,7 +246,7 @@ fun CameraXPreview(
     LaunchedEffect(Unit) {
         val cameraProvider = ProcessCameraProvider.getInstance(context).get()
         val preview = Preview.Builder().build().also {
-            it.setSurfaceProvider(previewView.surfaceProvider)
+            it.surfaceProvider = previewView.surfaceProvider
         }
 
         val imageAnalysis = ImageAnalysis.Builder()

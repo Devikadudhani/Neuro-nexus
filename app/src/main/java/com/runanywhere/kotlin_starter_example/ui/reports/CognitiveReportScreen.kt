@@ -40,7 +40,7 @@ fun CognitiveReportScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color(0xFFF3E5F5))
+                .background(Color(0xFFF3E5F5)) // Background Lilac shade
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {
@@ -51,7 +51,8 @@ fun CognitiveReportScreen(navController: NavController) {
                 Text(
                     text = "Cognitive Analysis",
                     fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF4A148C)
                 )
             }
 
@@ -59,22 +60,29 @@ fun CognitiveReportScreen(navController: NavController) {
             Text(text = "Detailed Report:", fontSize = 18.sp, fontWeight = FontWeight.Medium)
             Spacer(modifier = Modifier.height(16.dp))
 
-            ReportProgressItem("Memory Recall", data.memoryScore)
-            ReportProgressItem("Orientation (Time & Place)", data.orientationScore)
-            ReportProgressItem("Attention Span", data.attentionScore)
-            ReportProgressItem("Reasoning", data.reasoningScore)
-            ReportProgressItem("Language", data.languageScore)
+            CognitiveReportProgressItem("Memory Recall", data.memoryScore)
+            CognitiveReportProgressItem("Orientation (Time & Place)", data.orientationScore)
+            CognitiveReportProgressItem("Attention Span", data.attentionScore)
+            CognitiveReportProgressItem("Reasoning", data.reasoningScore)
+            CognitiveReportProgressItem("Language", data.languageScore)
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5).copy(alpha = 0.5f))
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.7f))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Remarks : ${data.remarks}",
+                        text = "Clinical Remarks:",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4A148C)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = data.remarks,
                         fontSize = 14.sp,
                         color = Color.DarkGray,
                         lineHeight = 20.sp
@@ -82,5 +90,29 @@ fun CognitiveReportScreen(navController: NavController) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun CognitiveReportProgressItem(label: String, score: Float) {
+    Column(modifier = Modifier.padding(vertical = 10.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = label, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF4A148C))
+            Text(text = "${score.toInt()}%", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7E57C2))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        LinearProgressIndicator(
+            progress = { score / 100f },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(12.dp),
+            color = Color(0xFFB39DDB), // Lilac bar color
+            trackColor = Color.White.copy(alpha = 0.5f),
+            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+        )
     }
 }

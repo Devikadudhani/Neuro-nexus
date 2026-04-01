@@ -13,15 +13,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.runanywhere.kotlin_starter_example.audio.VoiceFeatureExtractor
+import com.runanywhere.kotlin_starter_example.data.AnalysisDataStore
 import com.runanywhere.kotlin_starter_example.data.VoiceTaskLocalStore
 import com.runanywhere.kotlin_starter_example.model.VoiceTaskResult
 import com.runanywhere.kotlin_starter_example.tts.TtsController
 import com.runanywhere.sdk.public.RunAnywhere
 import com.runanywhere.sdk.public.extensions.VoiceAgent.VoiceSessionConfig
 import com.runanywhere.sdk.public.extensions.VoiceAgent.VoiceSessionEvent
+import com.runanywhere.sdk.public.extensions.chat
 import com.runanywhere.sdk.public.extensions.streamVoiceSession
-import com.runanywhere.kotlin_starter_example.data.AnalysisDataStore
-import com.runanywhere.kotlin_starter_example.data.SpeechAnalysisResult
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
@@ -41,11 +41,12 @@ class VoiceTaskViewModel(app: Application) : AndroidViewModel(app) {
 
     fun startTask() {
         if (_uiState.value.isRecording) return
-// Explicit permission check to handle security requirements
+        
         if (ContextCompat.checkSelfPermission(getApplication(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             _uiState.value = _uiState.value.copy(status = "Error: Permission Denied")
             return
         }
+        
         isCapturing = true
         _uiState.value = _uiState.value.copy(
             isRecording = true,
@@ -175,22 +176,33 @@ class VoiceTaskViewModel(app: Application) : AndroidViewModel(app) {
                     }
                 } ?: ShortArray(0)
 
-                // Pass the transcript text to the extractor to calculate linguistic features
                 val features = VoiceFeatureExtractor.extract(samples, sampleRate, text)
-                val score = VoiceFeatureExtractor.score(features)
+                
+                // --- LLM Clinical Insight for Voice ---
+                val aiInsight = try {
+                    val prompt = """
+                        You are a clinical speech analysis AI for NeuroNexus. Analyze these voice markers:
+                        - Speech Rate: ${features.speechRateWpm.toInt()} WPM
+                        - Pause Rate: ${features.pauseRate.toInt()} per min
+                        - Lexical Diversity: ${features.lexicalDiversity}
+                        - Semantic Coherence: ${features.coherenceScore}
+                        - Detected Issues: ${features.detectedIssues.joinToString(", ")}
+                        
+                        Provide a concise (2-sentence) clinical observation about the user's word retrieval and narrative flow.
+                    """.trimIndent()
+                    RunAnywhere.chat(prompt)
+                } catch (e: Exception) {
+                    null
+                }
 
-                val result = VoiceTaskResult(System.currentTimeMillis(), features, score)
+                val finalFeatures = features.copy(aiInsight = aiInsight)
+                val score = VoiceFeatureExtractor.score(finalFeatures)
+
+                val result = VoiceTaskResult(System.currentTimeMillis(), finalFeatures, score)
                 store.save(result)
 
                 // Store in Global AnalysisDataStore for Reports
-                AnalysisDataStore.speechData = SpeechAnalysisResult(
-                    pitchScore = 80f, // Simplified for now
-                    toneScore = 85f,
-                    speechRate = features.speechRateWpm.toInt(),
-                    clarityScore = (features.zeroCrossingRate * 500).toFloat().coerceIn(0f, 100f),
-                    pauseDuration = (20 - features.speakingDurationSec).toFloat().coerceIn(0f, 20f),
-                    remarks = "Analysis shows ${if(features.zeroCrossingRate > 0.1) "clear" else "muffled"} articulation with a speed of ${features.speechRateWpm.toInt()} WPM."
-                )
+                AnalysisDataStore.voiceData = finalFeatures
 
                 _uiState.value = _uiState.value.copy(
                     isRecording = false,
@@ -199,7 +211,7 @@ class VoiceTaskViewModel(app: Application) : AndroidViewModel(app) {
                     result = result
                 )
 
-                tts.speak("Your score is $score.")
+                tts.speak("Analysis complete. You can now view your detailed speech report.")
             } catch (e: Exception) {
                 Log.e("VoiceTask", "Error in processFinalResult", e)
                 _uiState.value = _uiState.value.copy(isRecording = false, status = "Processing Error")
@@ -212,14 +224,6 @@ class VoiceTaskViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun resetTask() {
-//        _uiState.value = _uiState.value.copy(
-//            isRecording = false,
-//            isCompleted = false,
-//            status = "Tap start and speak...",
-//            transcript = "",
-//            result = null,
-//            timerSeconds = 20
-//        )
         _uiState.value = VoiceTaskUiState()
     }
 
