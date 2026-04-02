@@ -91,7 +91,7 @@ class FaceAnalysisViewModel(application: Application) : AndroidViewModel(applica
             } catch (e: Exception) {
                 null
             } ?: return@launch
-            
+
             if (landmarks.ear < 0.2f && !blinkDetected.get()) {
                 blinkDetected.set(true)
                 blinkCount++

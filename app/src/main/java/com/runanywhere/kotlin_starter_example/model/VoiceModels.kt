@@ -20,11 +20,11 @@ data class VoiceFeatures(
     val rmsEnergy: Double = 0.0,
     val pauseCount: Int = 0,
     val meanPauseDuration: Double = 0.0,
-    val pauseRate: Double = 0.0, 
+    val pauseRate: Double = 0.0,
     val longestPause: Double = 0.0,
     val pauseToSpeechRatio: Double = 0.0,
     val tempoVariability: Double = 0.0,
-    
+
     // --- ADVANCED LINGUISTIC ---
     val informationDensity: Double = 0.0,
     val avgSentenceLength: Double = 0.0,

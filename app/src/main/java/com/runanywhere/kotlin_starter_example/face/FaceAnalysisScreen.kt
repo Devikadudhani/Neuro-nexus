@@ -115,7 +115,7 @@ fun FaceAnalysisScreen(
                 }
 
                 // --- ENGAGING OVERLAYS ---
-                
+
                 // 1. Smile Detection Indicator
                 localColumnScope.AnimatedVisibility(
                     visible = state.isSmiling,
