@@ -15,6 +15,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.runanywhere.kotlin_starter_example.R
 import androidx.navigation.NavController
+import com.runanywhere.kotlin_starter_example.ui.theme.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -24,14 +25,14 @@ fun NeuroTopBar(navController: NavController? = null) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFEDE7F6))
+            .background(LavenderShell)
             .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
         Image(
-            painter = painterResource(id = R.drawable.app_logo),
+            painter = painterResource(id = R.drawable.logo),
             contentDescription = "Logo",
             modifier = Modifier
                 .size(36.dp)
@@ -41,12 +42,17 @@ fun NeuroTopBar(navController: NavController? = null) {
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        Text("NEURO NEXUS", color = Color(0xFF4B0082))
+        Text(
+            text = "NEURO NEXUS", 
+            color = AccentPurple,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+        )
 
         Spacer(modifier = Modifier.weight(1f))
 
         IconButton(onClick = {}) {
-            Icon(Icons.Default.Notifications, contentDescription = null)
+            Icon(Icons.Default.Notifications, contentDescription = null, tint = AccentPurple)
         }
 
         IconButton(
@@ -54,7 +60,7 @@ fun NeuroTopBar(navController: NavController? = null) {
                 navController?.navigate("profile")
             }
         ) {
-            Icon(Icons.Default.Person, contentDescription = "Profile")
+            Icon(Icons.Default.Person, contentDescription = "Profile", tint = AccentPurple)
         }
     }
 }

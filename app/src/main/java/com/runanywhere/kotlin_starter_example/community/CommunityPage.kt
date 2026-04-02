@@ -156,7 +156,7 @@ fun DailyTipCard(tip: String, onRefresh: () -> Unit) {
             modifier = Modifier
                 .background(
                     Brush.horizontalGradient(
-                        colors = listOf(AccentPurple, Color(0xFF9575CD))
+                        colors = listOf(AccentPurple, LavenderHeader)
                     )
                 )
                 .padding(20.dp)
@@ -273,7 +273,7 @@ fun FeaturedArticlesRow() {
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(5.dp))
 
                     Text(
                         text = article.desc,
